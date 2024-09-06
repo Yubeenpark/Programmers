@@ -37,46 +37,6 @@ db.set(2,youtuber2);
 db.set(3,youtuber3);
 
 
-app.use(express.json());
-
-//등록
-app.post('/youtubers',  (req, res)=>{
-  //body에 있는 데이터 화면에 보내기
-  try{
-    db.set(++DEFAULT_ID,req.body);
-    res.status(201).json({
-      message: `${req.body.channelTitle}님, 등록 완료되었습니다. `
-    });
-  }catch(err){
-    res.status(404).json({message: `${err} 발생`});
-  }
-
-
-
-})
-
-//정보 조회
-app.get('/youtubers/:id', function (req, res) {
-  let {id} =req.params;
-  id = parseInt(id);
-
-  try{
-    if (db.get(id)=== undefined){
-      res.status(400).json(`There is no youtuber id:${id}`);
-    }
-    else{
-      youtuber = db.get(id);
-      res.json(youtuber);
-    }
-  }catch(err){
-    res.status(404).json(err);
-  }
-  
-
-})
-
-
-/*
 app.get('/youtuber/:id', function (req, res) {
     let {id} = req.params;
     id = parseInt(id);
@@ -94,7 +54,7 @@ app.get('/youtuber/:id', function (req, res) {
   
 
  
-  */
+  
 
   //전체 유튜버 조회
 
