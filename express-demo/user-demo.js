@@ -1,4 +1,4 @@
-const { defaults } = require('autoprefixer')
+
 const express = require('express')
 const app = express()
 app.listen(3000)
@@ -24,7 +24,6 @@ app.post('/login',(req,res)=>{
     let msg = '';
     try{
         db.set(++id,req.body);
-        
         msg = `${db.get(id).name}님 가입을 축하합니다.`;
         res.status(201).json({
             message:msg
