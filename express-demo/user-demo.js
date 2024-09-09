@@ -10,7 +10,6 @@ let db = new Map();
 app.post('/login',(req,res)=>{
     let {id, pwd }=req.body;
     let msg = '';
-    let user=db.get(id);
     let find = false;
     try{
 
