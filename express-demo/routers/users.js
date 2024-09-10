@@ -1,13 +1,58 @@
 
 const express = require('express')
-const app = express()
-app.listen(3000)
+const router = express.Router()
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         userId:
+ *           type: integer
+ *           format: int64
+ *           description: Unique identifier for the user
+ *           example: 1234567890
+ *         id:
+ *           type: string
+ *           description: User's unique identifier as a string
+ *           example: "abc123"
+ *         username:
+ *           type: string
+ *           description: Username of the user
+ *           example: "johndoe"
+ *       required:
+ *         - userId
+ *         - id
+ *         - username
+ */
+
+
 DB_ID = 0;
 //login
-app.use(express.json());
+router.use(express.json());
 
 let db = new Map();
-app.post('/login',(req,res)=>{
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     description: 로그인
+ *     tags: [Users]
+ *     produces:
+ *     - "application/json"
+ *     parameters:
+ *     - name: "body"
+ *       in: "body"
+ *       required: true
+ *       schema:
+ *         $ref: "#/components/schemas/User"
+ *     responses:
+ *       "200":
+ *         description: "successful operation"
+ *     
+*/
+router.post('/login',(req,res)=>{
     let {id, pwd }=req.body;
     let msg = '';
     let find = false;
@@ -37,7 +82,7 @@ app.post('/login',(req,res)=>{
 })
 
 //sign up
-app.post('/signup',(req,res)=>{
+router.post('/signup',(req,res)=>{
     console.log(req.body);
     let msg = '';
     try{
@@ -56,8 +101,9 @@ app.post('/signup',(req,res)=>{
 
 //user info
 
-app.get('/users/:userid',(req,res)=>{
-    let userId = parseInt(req.params.userid);
+router.route('/users')
+    .get((req,res)=>{
+    let userId = parseInt(req.body.userId);
     let msg ='';
     try{
         let user=db.get(userId);
@@ -71,14 +117,15 @@ app.get('/users/:userid',(req,res)=>{
         }
 
     }catch(err){
-        res.status(404).json(err);
+        msg = err;
+        res.status(404).json({message:msg});
     }
 })
 
 //modify user info
 
-app.put('/users/:userid',(req,res)=>{
-    let userId = parseInt(req.params.userid);
+    .put((req,res)=>{
+    let userId = parseInt(req.body.userId);
     let msg ='';
     try{
 
@@ -86,7 +133,8 @@ app.put('/users/:userid',(req,res)=>{
         let user=db.get(userId);
         res.json(user);
     }catch(err){
-        res.status(404).json(err);
+        msg = err;
+        res.status(404).json({message:msg});
     }
    
     
@@ -94,8 +142,8 @@ app.put('/users/:userid',(req,res)=>{
 
 //delete account
 
-app.delete('/users/:userid',(req,res)=>{
-    let userId = parseInt(req.params.userid);
+router.delete('/users/:userid',(req,res)=>{
+    let userId = parseInt(req.body.userId);
     let msg ='';
     try{
         let {name}=db.get(userId);
@@ -103,8 +151,11 @@ app.delete('/users/:userid',(req,res)=>{
         msg=`${name}님 회원 탈퇴 완료됐습니다. 다음에 만나요.`;
         res.json({message:msg});
     }catch(err){
-        res.status(404).json(err);
+        msg = err;
+        res.status(404).json({message:msg});
     }
 
     
 })
+
+module.exports = router;
