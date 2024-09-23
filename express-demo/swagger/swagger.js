@@ -1,6 +1,6 @@
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
-console.log(__dirname)
+
 const options = {
   swaggerDefinition: {
     openapi: "3.0.0",
