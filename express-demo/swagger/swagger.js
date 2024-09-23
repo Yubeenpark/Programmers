@@ -1,6 +1,6 @@
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
-
+console.log(__dirname)
 const options = {
   swaggerDefinition: {
     openapi: "3.0.0",
@@ -16,7 +16,7 @@ const options = {
       },
     ],
   },
-    apis: [__dirname+"/../routers/*.js"], //Swagger 파일 연동
+    apis: ["./express-demo/routers/*.js"], //Swagger 파일 연동
 }
 const specs = swaggerJsdoc(options)
 

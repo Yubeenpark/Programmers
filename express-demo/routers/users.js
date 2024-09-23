@@ -1,6 +1,7 @@
 
-const express = require('express')
-const router = express.Router()
+const express = require('express');
+const router = express.Router();
+const dbConnection = require('../db-demo.js');
 /**
  * @swagger
  * components:
@@ -26,6 +27,17 @@ const router = express.Router()
  *         - id
  *         - username
  */
+
+
+dbConnection.query(
+    'select * from users',
+    function(err, results, fields) {
+        //let {id,email,name,password,created_at} = results[0];
+        console.log(results); // results contains rows returned by server
+        console.log(fields);
+        //console.log(id,password,email); // fields contains extra meta data about results, if available
+    }
+); 
 
 
 DB_ID = 0;
