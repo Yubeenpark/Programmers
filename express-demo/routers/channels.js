@@ -25,7 +25,7 @@ router.route('/')
             dbConnection.query(SQL,[name, sub_num, video_count, user_id],
                 function(err, results, fields) {
                     if (err) {
-                        return res.status(404).json({ message: 'Error deleting channels.' });
+                        return res.status(404).json({ message: 'Error posting channels.' });
                     }
             else{
                     msg = `${name} 채널이 생성되었습니다.`;
@@ -153,7 +153,7 @@ router.route('/:id')
         dbConnection.query(SQL, channelId,
             function (err, results, fields) {
                 if (err) {
-                    return res.status(404).json({ message: 'Error deleting channel.' });
+                    return res.status(404).json({ message: 'Error finding channel to delete.' });
                 }
                 else if (results.length){
                     channelName = results[0].name;
