@@ -1,10 +1,10 @@
 
 const express = require('express')
 const router = express.Router()
-
-DB_ID = 1;
-
+const dbConnection = require('../db-demo.js');
 router.use(express.json());
+
+
 
     /*
 
@@ -15,16 +15,24 @@ router.use(express.json());
             }
     */
 
-let db = new Map();
+
 router.route('/')
     .post((req,res)=>{
         let msg = '';
+        const {name, sub_num, video_count, user_id} = req.body;
         try{
-            db.set(DB_ID++,req.body);
-            msg = `${req.body.username}님 ${req.body.channelTitle} 채널 생성을 축하합니다.`;
-            console.log(db);
-            res.status(201).json({
-                message:msg
+            const SQL =  'INSERT INTO channels (name, sub_num, video_count, user_id) VALUES (?,?,?,?) ';
+            dbConnection.query(SQL,[name, sub_num, video_count, user_id],
+                function(err, results, fields) {
+                    if (err) {
+                        return res.status(404).json({ message: 'Error deleting channels.' });
+                    }
+            else{
+                    msg = `${name} 채널이 생성되었습니다.`;
+                    res.status(201).json({
+                        message:msg
+                    });
+                }
             });
             
         }catch(err){
@@ -33,39 +41,37 @@ router.route('/')
                 message:`${err}`
             });
         }
-})
+})  
+//유저의 채널 전체 조회
     .get((req,res)=>{
-    let {userId} = req.body;
+    let {user_id} = req.body;
     let msg ='';
-    let channels = [];
+    const SQL = 'SELECT * FROM channels WHERE user_id = ?';
     try{
 
-        if (db.size===0){
-            msg = 'cannot find channel';
-            res.status(404).json({
-                message:msg
-            })
-        }else{
-            //res.status(200).json(Object.fromEntries(db));
-            /*
-                let channels = [];
-                db.forEach(function(value,key){
-                channels.push(value)})
-            */
-
-            db.forEach(function(value,key){
-                if (value.userId === userId)
-                        channels.push(value)})
-            if(channels.length===0)
-            {   
-                msg = `채널이 없습니다.`;
-                res.status(404).json({message:msg});
-            }else{
-                res.status(200).json(channels);
+        dbConnection.query(
+            SQL,  user_id,   
+            function(err, results, fields) {
+                if (results.length)
+                {
+                    res.json(results);
+                }
+                else if(err){  
+                    res.status(404).json({
+                        message: err    
+                    });
+                }
+                else{
+                    msg = 'cannot find channel of user';
+                    res.status(404).json({
+                        message: msg
+                    });
+    
+                }
             }
-                
+        ); 
+
             
-    }
     }catch(err){
         res.status(404).json({
             message:`${err}`
@@ -79,15 +85,25 @@ router.route('/:id')
     let channelId = parseInt(req.params.id);
     let msg ='';
     try{
-        let channel=db.get(channelId);
-        if(channel===undefined){
-            msg = 'cannot find channel';
-            res.status(404).json({
-                message:msg
-            })
-        }else{
-            res.json(channel);
-        }
+        const sql =  'SELECT * FROM channels WHERE id = ?';   
+        dbConnection.query(sql,channelId,
+            function(err, results, fields) {
+                if (results.length){
+                    res.status(201).json(results);
+                }
+                else if(err){
+                    res.status(404).json({
+                        message: err
+                    }); 
+                }
+               else{
+                    msg = 'cannot find channel';
+                    res.status(404).json({
+                        message : msg
+                    })
+               }
+            }
+        );
 
     }catch(err){
         res.status(404).json({
@@ -97,22 +113,29 @@ router.route('/:id')
 })
     .put((req,res)=>{
     let channelId = parseInt(req.params.id);
-    console.log()
+    const {name, sub_num, video_count, user_id} = req.body;
     let msg ='';
     try{
-        if(db.get(channelId)===undefined){
-            msg = '채널을 찾을 수 없습니다.';
-            res.status(404).json({
-                message:msg
-            })
-        }
-        else{
-            db.set(channelId,req.body);
-            let channel=db.get(channelId);
-            msg=`채널이 다음과 같이 변경되었습니다. 채널명: ${channel.channelTitle} 채널 소유자: ${channel.username}`;
-            res.json({message:msg});
-        }
-
+        const sql =  'UPDATE channels SET name = ?, sub_num = ?, video_count = ?, user_id =? WHERE id = ?';   
+        dbConnection.query(sql,[name, sub_num, video_count, user_id, channelId],
+            function(err, results, fields) {
+                if (results.length){
+                    res.status(201).json(results);
+                }
+                else if(err){
+                    res.status(404).json({
+                        message: err
+                    }); 
+                }
+               else{
+                    msg = 'cannot find channel';
+                    res.status(404).json({
+                        message : msg
+                    })
+               }
+            }
+        );
+        
     }catch(err){
         res.status(404).json({
             message:`${err}`
@@ -124,18 +147,40 @@ router.route('/:id')
     .delete((req,res)=>{
     let channelId = parseInt(req.params.id);
     let msg ='';
+    let channelName = '';
     try{
-        if(db.get(channelId)===undefined){
-            msg = '채널을 찾을 수 없습니다.';
-            res.status(404).json({
-                message:msg
-            })
-        }else{
-            let {channelTitle}=db.get(channelId);
-            db.delete(channelId);
-            msg=`${channelTitle} 채널이 삭제되었습니다.`;
-            res.json({message:msg});
-        }
+        let SQL = 'SELECT * FROM channels WHERE id = ?';
+        dbConnection.query(SQL, channelId,
+            function (err, results, fields) {
+                if (err) {
+                    return res.status(404).json({ message: 'Error deleting channel.' });
+                }
+                else if (results.length){
+                    channelName = results[0].name;
+                    SQL = 'DELETE FROM channels WHERE id = ?';
+                    dbConnection.query(SQL, channelId,
+                    function (err, results, fields) {
+                        if (err) {
+                            return res.status(404).json(
+                            { message: 'Error deleting channel.' });
+                        }
+                        else {
+                            msg = `${channelName} 채널이 삭제 됐습니다. `;
+                            res.status(201).json({
+                                message: msg
+                            });
+                        }
+                    });
+
+                }
+                else{
+                    msg = `채널이 존재하지 않습니다.`;
+                    res.status(404).json({
+                        message: msg
+                    });
+                }
+            }
+        );
         
     }catch(err){
         res.status(404).json({

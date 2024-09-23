@@ -75,7 +75,6 @@ router.post('/login',(req,res)=>{
     let {email, password}=req.body;
     let msg = '';
     try{
-
         dbConnection.query(
             'SELECT * FROM users WHERE email = ? and password = ? ', [email, password],   
             function(err, results, fields) {
