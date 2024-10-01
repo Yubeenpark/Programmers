@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const dbConnection = require('../db-demo.js');
+const {body,param, validationResult} = require('express-validator');
 router.use(express.json());
 /**
  * @swagger
@@ -70,8 +71,20 @@ router.use(express.json());
  *         description: "인증 실패"
  */
 
- 
-router.post('/login',(req,res)=>{
+const validate= (req,res,next)=>{
+    const err = validationResult(req);
+    if (err.isEmpty()){
+        return next();
+    }else{
+        return res.status(400).json(err.array());
+        
+    }
+}
+router.post('/login',[
+    body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
+    body('password').notEmpty().isString().withMessage('비밀번호 유효성 오류'),
+    validate
+],(req,res)=>{
     let {email, password}=req.body;
     let msg = '';
     try{
@@ -157,7 +170,13 @@ router.post('/login',(req,res)=>{
 
 
 //sign up
-router.post('/signup',(req,res)=>{
+router.post('/signup',[
+    body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
+    body('password').notEmpty().isString().withMessage('비밀번호 유효성 오류'),
+    body('name').notEmpty().isString().withMessage('이름 유효성 오류'),
+    body('contact').notEmpty().isMobilePhone().withMessage('전화번호 유효성 오류'),
+    validate
+],(req,res)=>{
     let msg = '';
     try{
         const {email,name, password,contact} = req.body;
@@ -179,13 +198,16 @@ router.post('/signup',(req,res)=>{
         
     }catch(err){
         msg = err;
-        res.status(404).json(err);
+        return res.status(404).json(err);
     }
 })
 
 //user info
 
-router.route('/users')
+router.route('/users',[
+    body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
+    validate
+])
     .get((req,res)=>{
     const {email} = req.body;
     let msg ='';
@@ -195,16 +217,16 @@ router.route('/users')
         function(err, results, fields) {
             if (results.length)
             {
-                res.json(results);
+                res.status(200).json(results);
             }
             else if(err){  
-                res.status(404).json({
+                return res.status(404).json({
                     message: err    
                 });
             }
             else{
                 msg = 'cannot find user';
-                res.status(404).json({
+                return res.status(404).json({
                     message: msg
                 });
 
@@ -217,7 +239,11 @@ router.route('/users')
 
 //modify user info
 
-    .put((req,res)=>{
+    .put([
+        body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
+        body('password').notEmpty().isString().withMessage('비밀번호 유효성 오류'),
+        validate
+    ],(req,res)=>{
     const  {email,name, password,contact} = req.body;
     let msg ='';
     try{
@@ -238,7 +264,7 @@ router.route('/users')
         );
     }catch(err){
         msg = err;
-        res.status(404).json({message:msg});
+        return res.status(404).json({message:msg});
     }
    
     
@@ -246,7 +272,10 @@ router.route('/users')
 
 //delete account
 
-.delete((req, res) => {
+.delete([
+    body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
+    validate
+],(req, res) => {
     const { email } = req.body;
     let msg = '';
     let user_name = '';
@@ -266,7 +295,7 @@ router.route('/users')
             });
 
     } catch (err) {
-        res.status(404).json({ message: 'An unexpected error occurred.' });
+        return res.status(404).json({ message: 'An unexpected error occurred.' });
     }
 });
 
