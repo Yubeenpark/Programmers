@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const dbConnection = require('../db-demo.js');
 const {body,param, validationResult} = require('express-validator');
+const jwt = require('jsonwebtoken');
 router.use(express.json());
 /**
  * @swagger
@@ -92,6 +93,18 @@ router.post('/login',[
             'SELECT * FROM users WHERE email = ? and password = ? ', [email, password],   
             function(err, results, fields) {
                 if (results.length){
+                    user = results[0];
+                    const token = jwt.sign({
+                        email:  user.email,
+                        name: user.name
+                    },process.env.JWT_KEY,{
+                        expiresIn:'30m',
+                        issuer:"yubeen"
+                    });
+
+                    res.cookie("token",token,{
+                        httpOnly:true
+                    },);
                     msg = `${results[0].name}님 로그인 완료 되었습니다.`;
                     res.status(201).json({
                         message:msg
@@ -104,7 +117,7 @@ router.post('/login',[
                 }
                else{
                 msg = '로그인에 실패하였습니다. 아이디와 패스워드를 변경하여 다시 시도하세요';
-                res.status(401).json({
+                res.status(403).json({
                     message : msg
                 })
                }
