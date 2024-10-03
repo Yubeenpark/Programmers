@@ -86,14 +86,14 @@ router.post('/login',[
     body('password').notEmpty().isString().withMessage('비밀번호 유효성 오류'),
     validate
 ],(req,res)=>{
-    let {email, password}=req.body;
+    const {email, password}=req.body;
     let msg = '';
     try{
         dbConnection.query(
             'SELECT * FROM users WHERE email = ? and password = ? ', [email, password],   
             function(err, results, fields) {
                 if (results.length){
-                    user = results[0];
+                    const user = results[0];
                     const token = jwt.sign({
                         email:  user.email,
                         name: user.name
@@ -101,7 +101,7 @@ router.post('/login',[
                         expiresIn:'30m',
                         issuer:"yubeen"
                     });
-
+                    console.log('로그인 유저 정보',jwt.decode(token,process.env.JWT_KEY));
                     res.cookie("token",token,{
                         httpOnly:true
                     },);
@@ -111,13 +111,13 @@ router.post('/login',[
                     });
                 }
                 else if(err){
-                    res.status(404).json({
+                    return res.status(404).json({
                         message: err
                     }); 
                 }
                else{
                 msg = '로그인에 실패하였습니다. 아이디와 패스워드를 변경하여 다시 시도하세요';
-                res.status(403).json({
+                return res.status(403).json({
                     message : msg
                 })
                }
@@ -182,7 +182,7 @@ router.post('/login',[
  */
 
 
-//sign up
+
 router.post('/signup',[
     body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
     body('password').notEmpty().isString().withMessage('비밀번호 유효성 오류'),
@@ -197,7 +197,7 @@ router.post('/signup',[
             'INSERT INTO users (email, name, password, contact) VALUES (?,?,?,?) ', [email, name, password, contact],   
             function(err, results, fields) {
                 if (err) {
-                    return res.status(404).json({ message: 'Error deleting user.' });
+                    return res.status(404).json({ message: 'Error signup user.' });
                 }
                 else{
                     msg = `${name}님 가입을 축하합니다.`;
@@ -215,7 +215,6 @@ router.post('/signup',[
     }
 })
 
-//user info
 
 router.route('/users',[
     body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
@@ -250,7 +249,6 @@ router.route('/users',[
 
 })
 
-//modify user info
 
     .put([
         body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),
@@ -283,7 +281,6 @@ router.route('/users',[
     
 })
 
-//delete account
 
 .delete([
     body('email').notEmpty().isEmail().withMessage('이메일 유효성 오류'),

@@ -1,0 +1,19 @@
+const express = require('express');
+const router = express.Router();
+
+router.post('/',(req,res)=>{
+    res.json('장바구니 담기');
+});
+
+router.get('/',(req,res)=>{
+    res.json('장바구니 조회');
+});
+
+router.delete('/:id',(req,res)=>{
+    const {id} = req.params;
+
+    res.json('장바구니 삭제');
+});
+
+
+module.exports = router;
